@@ -2,6 +2,8 @@ import Head from 'next/head';
 import { useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { useRouter } from 'next/router';
+import { MoralisProvider } from "react-moralis";
+
 import '../styles/index.css';
 
 import 'react-toastify/dist/ReactToastify.min.css';
@@ -17,6 +19,7 @@ import {
   GLOBAL_META,
   ORG_SCHEMA,
 } from '../lib/constants';
+
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -156,31 +159,36 @@ function MyApp({ Component, pageProps }) {
           />
         )}
       </Head>
-      <ModalProvider>
-        <Layout countryCode={pageProps?.countryCode || 'US'}>
-          {[401, 404].includes(pageProps?.errorCode) ? (
-            <>
-              <Head>
-                <title>404</title>
-              </Head>
-              <div className="flex items-center justify-center h-screen -mt-16">
-                <ErrorContainer />
-              </div>
-            </>
-          ) : (
-            <Component {...pageProps} />
-          )}
-          <ToastContainer
-            position="bottom-center"
-            autoClose={5000}
-            hideProgressBar={true}
-            newestOnTop={false}
-            draggable={false}
-            closeOnClick
-            pauseOnHover
-          />
-        </Layout>
-      </ModalProvider>
+      <MoralisProvider
+        serverUrl='https://wprm4ngboqub.usemoralis.com:2053/server'
+        appId='wzopz0oiuUvhgBMVAfaMXRD7cf2A5V5KOSbbvcd0'
+      >
+        <ModalProvider>
+          <Layout countryCode={pageProps?.countryCode || 'US'}>
+            {[401, 404].includes(pageProps?.errorCode) ? (
+              <>
+                <Head>
+                  <title>404</title>
+                </Head>
+                <div className="flex items-center justify-center h-screen -mt-16">
+                  <ErrorContainer />
+                </div>
+              </>
+            ) : (
+              <Component {...pageProps} />
+            )}
+            <ToastContainer
+              position="bottom-center"
+              autoClose={5000}
+              hideProgressBar={true}
+              newestOnTop={false}
+              draggable={false}
+              closeOnClick
+              pauseOnHover
+            />
+          </Layout>
+        </ModalProvider>
+      </MoralisProvider>
     </>
   );
 }

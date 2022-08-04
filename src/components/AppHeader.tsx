@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { MdDehaze as Hamburger, MdClose as Close } from 'react-icons/md';
+import { ConnectButton } from '@web3uikit/web3';
 
 import logo from '../../public/logo.png';
 
@@ -16,8 +17,16 @@ const Header = () => {
       link: '/',
     },
     {
-      title: 'Validators',
+      title: 'Validator',
       link: '/validator',
+    },
+    {
+      title: 'Employers',
+      link: '/employers',
+    },
+    {
+      title: 'Candidates',
+      link: '/candidates',
     },
   ];
 
@@ -91,6 +100,9 @@ const Header = () => {
         })}
       </div>
       <div className="flex items-center md:hidden top-4 left-4">
+        <Link href="/dashboard" passHref>
+          <ConnectButton />
+        </Link>
         <a onClick={onHamburgerClick}>
           {!open ? (
             <Hamburger className="inline-block w-8 h-8 text-white md:w-10 md:h-10" />
@@ -98,6 +110,9 @@ const Header = () => {
             <Close className="inline-block w-8 h-8 text-white md:w-10 md:h-10" />
           )}
         </a>
+      </div>
+      <div className="items-center hidden w-max md:flex gap-2 2xl:gap-8 lg:gap-4">
+        <ConnectButton />
       </div>
     </div>
   );

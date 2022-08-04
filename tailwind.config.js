@@ -22,6 +22,11 @@ module.exports = {
       fontSize: {
       },
       colors: {
+        purple: {
+          DEFAULT: '#8025FB',
+          light: '#D294FF',
+          dark: '#4E00B7',
+        },
       },
     }
   },
