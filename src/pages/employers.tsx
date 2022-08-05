@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import Image from 'next/image';
 
 import AppHeader from '../components/AppHeader';
@@ -73,7 +74,11 @@ export default function IndexPage() {
 
   return (
     <section>
+      <Head>
+        <title>Trinity - Employer Home!</title>
+      </Head>
       <AppHeader />
+
       <main className='min-h-screen mt-16'>
         {!isAuthenticated ? (
           <div className='flex flex-row items-center justify-center min-h-screen -mt-16'>

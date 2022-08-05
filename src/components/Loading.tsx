@@ -6,20 +6,20 @@ const Loading = ({ className = 'min-h-screen' }) => (
     <div
       className={`hidden md:flex flex-col items-center justify-center ${className}`}
     >
-      <ReactLoading type="spin" color="#0C0047" height="50px" width="50px" />
+      <ReactLoading type="spin" color="white" height="50px" width="50px" />
       <img
         className="block mt-4"
-        src="/img/logo-dark.svg"
+        src="/img/logo.png"
         alt="logo"
       />
     </div>
     <div
       className={`md:hidden flex flex-col items-center justify-center ${className}`}
     >
-      <ReactLoading type="spin" color="#0C0047" height="30px" width="30px" />
+      <ReactLoading type="spin" color="white" height="30px" width="30px" />
       <img
         className="block mt-4"
-        src="/img/logo-dark.svg"
+        src="/img/logo.png"
         alt="logo"
       />
     </div>

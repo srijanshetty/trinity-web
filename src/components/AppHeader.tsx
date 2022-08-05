@@ -16,18 +16,6 @@ const Header = () => {
       title: 'Home',
       link: '/',
     },
-    {
-      title: 'Validator',
-      link: '/validator',
-    },
-    {
-      title: 'Employers',
-      link: '/employers',
-    },
-    {
-      title: 'Candidates',
-      link: '/candidates',
-    },
   ];
 
   const onHamburgerClick = () => {

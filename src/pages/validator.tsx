@@ -1,8 +1,12 @@
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import Image from 'next/image';
 
 import AppHeader from '../components/AppHeader';
-import { useMoralis } from 'react-moralis';
+import { useMoralis, useMoralisQuery } from 'react-moralis';
 
+import { showError } from '../containers/Toast';
+import ButtonWithProgress from '../components/ButtonWithProgress';
 import NoCandidates from '../../public/img/no-candidates.png';
 import NotAValidator from '../../public/img/not-a-validator.jpeg';
 
@@ -36,7 +40,50 @@ const CandidateList = ({ candidates }) => {
 };
 
 const Main = () => {
-  const { user } = useMoralis();
+  const [showGetCandidate, setShowGetCandidate] = useState(true);
+  const [candidates, setCandidates] = useState([]);
+  const { user, account } = useMoralis();
+
+  const { fetch: fetchCandidateData } = useMoralisQuery(
+    "Candidates",
+    (query) => query.equalTo("status", "NEW").limit(1),
+    [],
+    { autoFetch: false }
+  );
+
+  const { fetch: fetchInterviews } = useMoralisQuery(
+    "Interviews",
+    (query) => query.equalTo("interviewer", account),
+    [],
+    { autoFetch: false }
+  );
+
+  const onGetCandidate = () => {
+    setShowGetCandidate(false);
+    fetchCandidateData({
+      onSuccess: (candidate) => {
+        console.log(candidate[0]);
+        setShowGetCandidate(true);
+      },
+      onError: (error) => {
+        console.log(error);
+        showError('Could not find any candidate');
+        setShowGetCandidate(true);
+      },
+    });
+  }
+
+  useEffect(() => {
+    fetchInterviews({
+      onSuccess: (candidates) => {
+        setCandidates(candidates);
+      },
+      onError: (error) => {
+        console.log(error);
+        showError('No interviews found');
+      },
+    });
+  }, [user]);
 
   if (!user.attributes.isValidator) {
     return (
@@ -71,11 +118,19 @@ const Main = () => {
             <div>
               Nothing found! Let&apos;s start reviewing some candidates?
             </div>
+            <ButtonWithProgress
+              id="validator-get-candidate"
+              showConfirmText={showGetCandidate}
+              className="w-1/3 mt-2 btn-basic bg-gradient"
+              confirmText="Get Candidate"
+              onClick={onGetCandidate}
+            />
           </div>
         ) : (
           <CandidateList candidates={user.attributes.candidates} />
         )}
       </div>
+
       <div className='col-start-3 col-end-4'>
         <ValidatorStats />
       </div>
@@ -83,12 +138,16 @@ const Main = () => {
   );
 }
 
-export default function IndexPage() {
+export default function Validator() {
   const { isAuthenticated } = useMoralis();
 
   return (
     <section>
+      <Head>
+        <title>Trinity - Validator Home!</title>
+      </Head>
       <AppHeader />
+
       <main className='min-h-screen mt-16'>
         {!isAuthenticated ? (
           <div className='flex flex-row items-center justify-center min-h-screen -mt-16'>
@@ -110,4 +169,3 @@ export default function IndexPage() {
     </section>
   );
 }
-

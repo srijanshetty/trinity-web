@@ -17,7 +17,7 @@ const Input = (props) => {
         </label>
       )}
       <input
-        className={`bg-gray-1 focus:bg-white border border-gray-1 focus:border-purple rounded p-3 w-full ${margins} ${inputError}`}
+        className={`text-black bg-white focus:text-lg rounded p-3 w-full ${margins} ${inputError}`}
         {...props.field}
         {...props}
       />

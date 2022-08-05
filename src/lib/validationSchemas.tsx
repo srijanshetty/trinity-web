@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+
 export const AboutSchema = Yup.object().shape({
   contact: Yup.string()
     .matches(
@@ -37,7 +38,7 @@ export const ResetPasswordSchema = Yup.object().shape({
   repeatPassword: Yup.string()
     .required('Required')
     .when('password', {
-      is: (password) => (password && password.length > 0 ? true : false),
+      is: (password: string) => (password && password.length > 0 ? true : false),
       then: Yup.string().oneOf([Yup.ref('password')], "Password's don't match"),
     }),
 });
@@ -45,7 +46,7 @@ export const ResetPasswordSchema = Yup.object().shape({
 export const CandidateSchema = Yup.object().shape({
   name: Yup.string().required('First Name is required'),
   email: Yup.string().email('Invalid Email').required('Email is required'),
-  twitter: Yup.string().url('Invalid Twitter').required('Twitter is required'),
-  github: Yup.string().url('Invalid Twitter').required('Twitter is required'),
-  linkedIn: Yup.string().url('Invalid LinkedIn').required('LinkedIn is required'),
+  twitter: Yup.string().url('Invalid URL').required('Twitter is required'),
+  github: Yup.string().url('Invalid URL').required('GitHub is required'),
+  linkedIn: Yup.string().url('Invalid URL').required('LinkedIn is required'),
 });
