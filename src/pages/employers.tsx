@@ -35,12 +35,14 @@ const CandidateList = ({ candidates }) => {
 
 const Main = () => {
   const { user } = useMoralis();
+  const gas = user.attributes?.gas ?? 0;
+  const candidates = user.attributes?.candidates ?? [];
 
   return (
     <div className='min-h-screen p-16 grid grid-cols-3 gap-8'>
       <div className='col-start-1 col-end-3'>
         <h1 className='text-2xl'>Hello <span className='text-gradient'>Employer!</span></h1>
-        {user.attributes?.gas ?? 0 ? (
+        {gas && !candidates ? (
           <CandidateList candidates={user.attributes.candidates} />
         ) : (
           <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>

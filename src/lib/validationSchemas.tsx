@@ -41,3 +41,11 @@ export const ResetPasswordSchema = Yup.object().shape({
       then: Yup.string().oneOf([Yup.ref('password')], "Password's don't match"),
     }),
 });
+
+export const CandidateSchema = Yup.object().shape({
+  name: Yup.string().required('First Name is required'),
+  email: Yup.string().email('Invalid Email').required('Email is required'),
+  twitter: Yup.string().url('Invalid Twitter').required('Twitter is required'),
+  github: Yup.string().url('Invalid Twitter').required('Twitter is required'),
+  linkedIn: Yup.string().url('Invalid LinkedIn').required('LinkedIn is required'),
+});
