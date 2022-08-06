@@ -29,3 +29,5 @@ tsconfig.tsbuildinfo
 .env.development.local
 .env.test.local
 .env.production.local
+
+.session.json
