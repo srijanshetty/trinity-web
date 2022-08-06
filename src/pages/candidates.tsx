@@ -107,24 +107,28 @@ const Main = () => {
   const [showConfirm, setShowConfirm] = useState(true);
   const [candidateData, setCandidateData] = useState(null);
 
-  const { user, account } = useMoralis();
-  console.log(user, account);
+  const { account } = useMoralis();
 
   // Fetchers for the candidates
   const { fetch: fetchCandidateData } = useMoralisQuery(
     "Candidates",
     (query) => query.equalTo("account", account).limit(1),
-    [],
+    [account],
     { autoFetch: false }
   );
   const { save: saveCandidate } = useNewMoralisObject("Candidates");
 
   useEffect(() => {
+    console.log('here');
+    console.log(account);
     setLoading(true);
     fetchCandidateData({
       onSuccess: (candidate) => {
         console.log(candidate[0]);
-        setCandidateData(candidate[0].attributes);
+        if (candidate[0]) {
+          setCandidateData(candidate[0].attributes);
+        }
+
         setLoading(false);
       },
       onError: (error) => {
@@ -133,7 +137,7 @@ const Main = () => {
         setLoading(false);
       },
     });
-  }, [user]);
+  }, [account]);
 
   const onSubmit = ({
     name,
@@ -142,6 +146,7 @@ const Main = () => {
     linkedIn,
     github,
   }) => {
+    setShowConfirm(false);
     saveCandidate({
       name,
       email,
@@ -159,10 +164,12 @@ const Main = () => {
         const value = candidate.save();
 
         showSuccess('Candidate saved!');
+        setShowConfirm(true);
         return value;
       },
       onError: (error) => {
         showError('Could not save data!');
+        setShowConfirm(true);
       }
     });
   }

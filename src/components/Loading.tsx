@@ -8,7 +8,7 @@ const Loading = ({ className = 'min-h-screen' }) => (
     >
       <ReactLoading type="spin" color="white" height="50px" width="50px" />
       <img
-        className="block mt-4"
+        className="block w-20 mt-4"
         src="/img/logo.png"
         alt="logo"
       />
