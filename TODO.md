@@ -1,3 +1,4 @@
+## Structure
 - Interview type: VALIDATOR/EMPLOYER
     - account
     - status: VALIDATOR/EMPLOYER
@@ -7,3 +8,7 @@
 
 - Candidates: Show underprocess interviews
 - Employers: Search one validated candidate on Skills table
+
+## Work
+- Table integration
+- web3.js integration
