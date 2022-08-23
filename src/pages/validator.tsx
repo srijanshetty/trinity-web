@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import { useMoralis, useMoralisQuery, useNewMoralisObject } from 'react-moralis';
 
 import AppHeader from '../components/AppHeader';
-import { useMoralis, useMoralisQuery } from 'react-moralis';
+import ValidatorInterviewList from '../containers/ValidatorInterviewList';
 
 import { showError } from '../containers/Toast';
 import ButtonWithProgress from '../components/ButtonWithProgress';
@@ -19,30 +20,27 @@ import NotAValidator from '../../public/img/not-a-validator.jpeg';
 // - If validator and no candidates then search button
 // - If validator and has candidates then show list of candidates
 
-const ValidatorStats = () => {
+const ValidatorStats = ({ candidates }) => {
   return (
     <div className='p-4 rounded-lg bg-purple'>
       <h2 className='text-lg text-center uppercase'>Stats</h2>
-      <div className='grid grid-cols-2'>
+      <div className='mt-8 grid grid-cols-2'>
+        <div className='col-start-1 col-end-2'>
+          Candidates
+        </div>
+        <div className='text-right col-start-2 col-end-3'>
+          {candidates.length}
+        </div>
       </div>
     </div>
   );
 }
 
-const CandidateList = ({ candidates }) => {
-  console.log(candidates);
-
-  return (
-    <>
-      You have some candidates!!
-    </>
-  );
-};
-
 const Main = () => {
   const [showGetCandidate, setShowGetCandidate] = useState(true);
-  const [candidates, setCandidates] = useState([]);
+  const [interviews, setInterviews] = useState([]);
   const { user, account } = useMoralis();
+  const { save: saveInterview } = useNewMoralisObject("Interviews");
 
   const { fetch: fetchCandidateData } = useMoralisQuery(
     "Candidates",
@@ -53,37 +51,58 @@ const Main = () => {
 
   const { fetch: fetchInterviews } = useMoralisQuery(
     "Interviews",
-    (query) => query.equalTo("interviewer", account),
-    [],
+    (query) => query.equalTo("sourceAccount", account),
+    [account],
     { autoFetch: false }
   );
 
-  const onGetCandidate = () => {
+  const onGetCandidate = async () => {
     setShowGetCandidate(false);
-    fetchCandidateData({
-      onSuccess: (candidate) => {
-        console.log(candidate[0]);
-        setShowGetCandidate(true);
-      },
-      onError: (error) => {
-        console.log(error);
-        showError('Could not find any candidate');
-        setShowGetCandidate(true);
-      },
-    });
+
+    try {
+      const candidates = await fetchCandidateData();
+      const candidate = candidates[0];
+
+      if (candidate) {
+        console.log(candidate);
+
+        // Update the state of the candidate to VALIDATOR
+        candidate.set("status", "VALIDATOR");
+        await candidate.save();
+
+        // Create an interview entry for the candidate
+        await saveInterview({
+          sourceAccount: account,
+          candidate: candidate.id,
+          stage: 'VALIDATOR',
+          startEpochSeconds: Math.floor(Date.now() / 1000),
+        });
+      } else {
+        showError('No candidate found for interview!');
+      }
+    } catch (error) {
+      console.log(error);
+      showError('Could not find any candidate to validate');
+    }
+
+    setShowGetCandidate(true);
   }
 
   useEffect(() => {
-    fetchInterviews({
-      onSuccess: (candidates) => {
-        setCandidates(candidates);
-      },
-      onError: (error) => {
+    const runQuery = async () => {
+      try {
+        const candidates = await fetchInterviews();
+        console.log(candidates);
+        setInterviews(candidates);
+      } catch (error) {
         console.log(error);
-        showError('No interviews found');
-      },
-    });
-  }, [user]);
+        setInterviews([]);
+        showError('Could not fetch list of candidates to validate');
+      }
+    };
+
+    runQuery();
+  }, [user, account]);
 
   if (!user.attributes.isValidator) {
     return (
@@ -103,13 +122,15 @@ const Main = () => {
     );
   }
 
+  console.log(interviews);
+
   return (
     <div className='min-h-screen p-16 grid grid-cols-3 gap-8'>
       <div className='col-start-1 col-end-3'>
         <h1 className='text-2xl'>Hello <span className='text-gradient'>Validator!</span></h1>
-        {user.attributes?.candidates ?? [] ? (
+        {interviews.length === 0 ? (
           <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
-            <div className='w-2/3 p-4 md:w-2/5 '>
+            <div className='w-2/3 p-4 md:w-2/5'>
               <Image
                 src={NoCandidates}
                 alt="no candidates in queue"
@@ -127,12 +148,14 @@ const Main = () => {
             />
           </div>
         ) : (
-          <CandidateList candidates={user.attributes.candidates} />
+          <div className='mt-4'>
+            <ValidatorInterviewList candidates={interviews} />
+          </div>
         )}
       </div>
 
       <div className='col-start-3 col-end-4'>
-        <ValidatorStats />
+        <ValidatorStats candidates={interviews} />
       </div>
     </div>
   );
