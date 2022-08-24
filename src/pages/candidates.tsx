@@ -13,6 +13,7 @@ import CandidateInterviewList from '../containers/CandidateInterviewList';
 
 import Candidate from '../interfaces/Candidate';
 import Interview from '../interfaces/Interview';
+import Skill from '../interfaces/Skill';
 
 import { CandidateSchema } from '../lib/validationSchemas';
 
@@ -83,18 +84,21 @@ const CandidateStats = ({ candidate }) => {
 const Trophies = ({
   candidate,
   interviews,
+  skills,
 } : {
   candidate: Candidate;
   interviews: Interview[];
+  skills: Skill[];
 }) => {
   if (candidate) {
     return (
       <section>
-        <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
+        <div className='mt-8'>
+          <h3 className='mb-2 text-xl text-gradient'>Interviews</h3>
           {interviews.length ? (
             <CandidateInterviewList interviews={interviews} />
           ) : (
-            <div>
+            <div className='flex flex-col items-center justify-center mt-8 rounded-lg bg-opacity-50'>
               <div className='w-2/3 p-4 md:w-2/5 '>
                 <Image
                   src={NoCandidates}
@@ -102,6 +106,22 @@ const Trophies = ({
                 />
               </div>
               It&apos;s a bit lonely here! Your interviews will appear here!
+            </div>
+          )}
+        </div>
+        <div className='mt-8'>
+          <h3 className='mb-2 text-xl text-gradient'>NFTs</h3>
+          {skills.length ? (
+            <CandidateInterviewList interviews={interviews} />
+          ) : (
+            <div className='flex flex-col items-center justify-center rounded-lg bg-opacity-50'>
+              <div className='w-2/3 p-4 md:w-2/5 '>
+                <Image
+                  src={NoCandidates}
+                  alt="no candidates in queue"
+                />
+              </div>
+              It&apos;s a bit lonely here! Your NFTs will appear here!
             </div>
           )}
         </div>
@@ -266,7 +286,7 @@ const Main = () => {
           </div>
         ) : (
           <div className='mt-4'>
-            <Trophies candidate={candidateData} interviews={interviews} />
+            <Trophies candidate={candidateData} interviews={interviews} skills={[]} />
           </div>
         )}
       </div>
