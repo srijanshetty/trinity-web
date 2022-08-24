@@ -2,23 +2,25 @@ import { Table } from '@web3uikit/core';
 import { DateTime } from 'luxon';
 import Interview from '../interfaces/Interview';
 
-const ValidatorInterviewList = ({
-  candidates
+const CandidateInterviewList = ({
+  interviews
 } : {
-  candidates: Interview[]
+  interviews: Interview[]
 }) => {
   return (
     <Table
-      columnsConfig="1fr 1fr"
-      data={candidates.map(
+      columnsConfig="1fr 1fr 1fr"
+      data={interviews.map(
         (item) => [
           DateTime.fromSeconds(item.attributes.startEpochSeconds).toFormat('dd-MM-yyyy'),
-          item.attributes.candidate,
+          item.attributes.stage,
+          item.attributes.sourceAccount,
         ]
       )}
       header={[
         <span key="epoch">Allocated At</span>,
-        <span key="type">Candidate</span>,
+        <span key="type">Stage</span>,
+        <span key="type">Interviewer</span>,
       ]}
       isColumnSortable={[
         true,
@@ -30,4 +32,4 @@ const ValidatorInterviewList = ({
   );
 }
 
-export default ValidatorInterviewList;
+export default CandidateInterviewList;

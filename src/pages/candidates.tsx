@@ -9,6 +9,10 @@ import Loading from '../components/Loading';
 import AppHeader from '../components/AppHeader';
 import ButtonWithProgress from '../components/ButtonWithProgress';
 import { showSuccess, showError } from '../containers/Toast';
+import CandidateInterviewList from '../containers/CandidateInterviewList';
+
+import Candidate from '../interfaces/Candidate';
+import Interview from '../interfaces/Interview';
 
 import { CandidateSchema } from '../lib/validationSchemas';
 
@@ -76,20 +80,30 @@ const CandidateStats = ({ candidate }) => {
   );
 }
 
-const Trophies = ({ candidate }) => {
+const Trophies = ({
+  candidate,
+  interviews,
+} : {
+  candidate: Candidate;
+  interviews: Interview[];
+}) => {
   if (candidate) {
     return (
       <section>
         <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
-          <div className='w-2/3 p-4 md:w-2/5 '>
-            <Image
-              src={NoCandidates}
-              alt="no candidates in queue"
-            />
-          </div>
-          <div>
-            It&apos;s a bit lonely here! Your interviews will appear here!
-          </div>
+          {interviews.length ? (
+            <CandidateInterviewList interviews={interviews} />
+          ) : (
+            <div>
+              <div className='w-2/3 p-4 md:w-2/5 '>
+                <Image
+                  src={NoCandidates}
+                  alt="no candidates in queue"
+                />
+              </div>
+              It&apos;s a bit lonely here! Your interviews will appear here!
+            </div>
+          )}
         </div>
       </section>
     );
@@ -106,8 +120,9 @@ const Main = () => {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(true);
   const [candidateData, setCandidateData] = useState(null);
+  const [interviews, setInterviews] = useState([]);
 
-  const { account } = useMoralis();
+  const { user, account } = useMoralis();
 
   // Fetchers for the candidates
   const { fetch: fetchCandidateData } = useMoralisQuery(
@@ -118,28 +133,38 @@ const Main = () => {
   );
   const { save: saveCandidate } = useNewMoralisObject("Candidates");
 
+  const { fetch: fetchInterviews } = useMoralisQuery(
+    "Interviews",
+    (query) => query.equalTo("candidate", user.id),
+    [user, account],
+    { autoFetch: false }
+  );
+
   useEffect(() => {
-    console.log('here');
-    console.log(account);
-    setLoading(true);
-    fetchCandidateData({
-      onSuccess: (candidate) => {
-        console.log(candidate[0]);
+    const runQuery = async () => {
+      try {
+        const candidate = await fetchCandidateData();
+
         if (candidate[0]) {
           setCandidateData(candidate[0].attributes);
         }
 
-        setLoading(false);
-      },
-      onError: (error) => {
+        const candidates = await fetchInterviews();
+        console.log(candidates);
+        setInterviews(candidates);
+      } catch (error) {
         console.log(error);
-        showError('Could not fetch data');
-        setLoading(false);
-      },
-    });
-  }, [account]);
+        setInterviews([]);
+        showError('Could not fetch list of candidates to validate');
+      }
 
-  const onSubmit = ({
+      setLoading(false);
+    };
+
+    runQuery();
+  }, [user, account]);
+
+  const onSubmit = async ({
     name,
     email,
     twitter,
@@ -147,31 +172,23 @@ const Main = () => {
     github,
   }) => {
     setShowConfirm(false);
-    saveCandidate({
-      name,
-      email,
-      twitter,
-      linkedIn,
-      github,
-    }, {
-      onSuccess: (candidate) => {
-        candidate.set("name", name);
-        candidate.set("email", email);
-        candidate.set("twitter", twitter);
-        candidate.set("github", github);
-        candidate.set("linkedIn", linkedIn);
-        candidate.set("status", "NEW");
-        const value = candidate.save();
-
-        showSuccess('Candidate saved!');
-        setShowConfirm(true);
-        return value;
-      },
-      onError: (error) => {
-        showError('Could not save data!');
-        setShowConfirm(true);
-      }
-    });
+    try {
+      const candidate = {
+        userId: user.id,
+        status: 'NEW',
+        name,
+        email,
+        twitter,
+        github,
+        linkedIn,
+      };
+      await saveCandidate(candidate);
+      setCandidateData(candidate);
+      showSuccess('Candidate saved successfully');
+    } catch (error) {
+      console.log(error);
+    }
+    setShowConfirm(true);
   }
 
   if (loading) {
@@ -191,7 +208,7 @@ const Main = () => {
         {!candidateData ? (
           <div className='mt-4'>
             <div>Let&apos;s get to know you better</div>
-            <div className='w-1/2'>
+            <div className='w-full'>
               <Formik
                 initialValues={{
                   email: '',
@@ -248,7 +265,9 @@ const Main = () => {
             </div>
           </div>
         ) : (
-          <Trophies candidate={candidateData} />
+          <div className='mt-4'>
+            <Trophies candidate={candidateData} interviews={interviews} />
+          </div>
         )}
       </div>
       <div className='col-start-3 col-end-4'>

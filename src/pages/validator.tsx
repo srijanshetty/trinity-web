@@ -71,12 +71,14 @@ const Main = () => {
         await candidate.save();
 
         // Create an interview entry for the candidate
-        await saveInterview({
+        const interview = {
           sourceAccount: account,
-          candidate: candidate.id,
+          candidate: candidate.attributes.userId,
           stage: 'VALIDATOR',
           startEpochSeconds: Math.floor(Date.now() / 1000),
-        });
+        };
+        await saveInterview(interview);
+        setInterviews([interview]);
       } else {
         showError('No candidate found for interview!');
       }
