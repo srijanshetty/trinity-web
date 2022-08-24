@@ -11,15 +11,6 @@ import ButtonWithProgress from '../components/ButtonWithProgress';
 import NoCandidates from '../../public/img/no-candidates.png';
 import NotAValidator from '../../public/img/not-a-validator.jpeg';
 
-// DONE:
-// - Landing Page
-// - If validator show message saying let's start
-// - If not validator then signup to be a validator
-
-// FIXME:
-// - If validator and no candidates then search button
-// - If validator and has candidates then show list of candidates
-
 const ValidatorStats = ({ candidates }) => {
   return (
     <div className='p-4 rounded-lg bg-purple'>

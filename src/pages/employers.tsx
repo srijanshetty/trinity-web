@@ -6,14 +6,6 @@ import { useMoralis } from 'react-moralis';
 
 import NoGas from '../../public/img/no-gas.png';
 
-// DONE:
-// - If not connected show message.
-// - If no gas ask to fill gas.
-
-// FIXME:
-// - If gas then show them search button.
-// - If candidates then show existing and button to add further.
-
 const EmployerStats = () => {
   return (
     <div className='p-4 rounded-lg bg-purple'>

@@ -1,5 +1,6 @@
 type Skill = {
   attributes: {
+    id: string;
   };
 };
 

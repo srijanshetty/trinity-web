@@ -19,14 +19,6 @@ import { CandidateSchema } from '../lib/validationSchemas';
 
 import NoCandidates from '../../public/img/no-candidates.png';
 
-// DONE:
-// - Landing Page inviting them to join
-// - Fetch and save candidate data
-
-// FIXME:
-// - Show Skills, Interviews
-// - Show open jobs, skills and underprocess validations
-
 const Formik = dynamic(() => import('../components/form/Formik'), {
   ssr: false,
   loading: () => null,
