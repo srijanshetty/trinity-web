@@ -39,11 +39,11 @@ const Input = dynamic(() => import('../components/form/Input'), {
 const CandidateStats = ({ candidate }) => {
   if (!candidate) {
     return (
-      <div className='flex flex-col items-center justify-center p-4 pb-8 rounded-lg bg-purple'>
+      <div className='flex flex-col items-center justify-center p-4 pb-8 text-black bg-white rounded-lg'>
         <div className='mt-4'>
           <Pulse fontSize='50px'/>
         </div>
-        <div className='mt-4'>
+        <div className='mt-4 text-center'>
           Mr.Robot, give us control!
         </div>
       </div>
@@ -51,7 +51,7 @@ const CandidateStats = ({ candidate }) => {
   }
 
   return (
-    <div className='p-4 pb-8 rounded-lg bg-purple'>
+    <div className='p-4 pb-8 text-black bg-white rounded-lg'>
       <div className='flex flex-col items-center justify-center mt-4 grid grid-cols-4 gap-y-2'>
         <div className='col-start-1 col-end-2'><User /></div>
         <div className='col-start-2'>{candidate.name}</div>
