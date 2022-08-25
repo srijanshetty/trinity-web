@@ -1,12 +1,24 @@
 import { useEffect, useState } from 'react';
+import {
+  useMoralis,
+  useMoralisQuery,
+  useNewMoralisObject,
+  useApiContract,
+  useWeb3ExecuteFunction,
+} from 'react-moralis';
 import Head from 'next/head';
 import Image from 'next/image';
 
 import Loading from '../components/Loading';
 import AppHeader from '../components/AppHeader';
-import { useMoralis, useApiContract, useWeb3ExecuteFunction } from 'react-moralis';
+import ButtonWithProgress from '../components/ButtonWithProgress';
+
+import EmployeeInterviewList from '../containers/EmployeeInterviewList';
+import { showError } from '../containers/Toast';
 
 import NoGas from '../../public/img/no-gas.png';
+import NoCandidates from '../../public/img/no-candidates.png';
+
 import TrinityAbi from '../abi/Trinity.json';
 
 import { CHAIN_NAME, CONTRACT_ADDRESS } from '../constants';
@@ -46,21 +58,15 @@ const EmployerStats = ({
   );
 }
 
-const CandidateList = ({ candidates }) => {
-  console.log(candidates);
-
-  return (
-    <>
-      You have some candidates!!
-    </>
-  );
-};
-
 const Main = () => {
   const [loading, setLoading] = useState(true);
-  const { user, Moralis, account } = useMoralis();
+  const [showGetCandidate, setShowGetCandidate] = useState(true);
+  const [interviews, setInterviews] = useState([]);
   const [entranceFee, setEntranceFee] = useState(null);
   const [employerStake, setEmployerStake] = useState(null);
+
+  const { user, account, Moralis } = useMoralis();
+  const { save: saveInterview } = useNewMoralisObject("Interviews");
 
    const {
      runContractFunction: getEntranceFee,
@@ -88,17 +94,74 @@ const Main = () => {
    });
 
    const {
-     fetch: enlistEmployer,
-     data: enlistEmployerData,
-     error: enlistEmployerError,
+     fetch: runEnlistEmployer,
    } = useWeb3ExecuteFunction({
      contractAddress: CONTRACT_ADDRESS,
      functionName: "enlistEmployer",
      abi: TrinityAbi.abi,
      msgValue: Moralis.Units.ETH(entranceFee || "0"),
    });
+
+   const enlistEmployer = async () => {
+     const result = await runEnlistEmployer();
+     setEmployerStake(entranceFee);
+   };
   
-  const candidates = user.attributes?.candidates ?? [];
+  const { fetch: fetchCandidateData } = useMoralisQuery(
+    "Candidates",
+    (query) => query
+      .equalTo("status", "VALIDATED")
+      .limit(1),
+    [],
+    { autoFetch: false }
+  );
+
+  const { fetch: fetchInterviews } = useMoralisQuery(
+    "Interviews",
+    (query) => query
+      .equalTo("status", "OPEN")
+      .equalTo("sourceAccount", account)
+      .equalTo("stage", "EMPLOYER"),
+    [account],
+    { autoFetch: false }
+  );
+
+  const onGetCandidate = async () => {
+    // FIXME: Current we allow multiple candidates
+    // for any stake amount, fix this and ensure
+    // that only one candidate per entranceFee
+    setShowGetCandidate(false);
+
+    try {
+      const candidates = await fetchCandidateData();
+      const candidate = candidates[0];
+
+      if (candidate) {
+        console.log(candidate);
+
+        // Update the state of the candidate to VALIDATOR
+        candidate.set("status", "VALIDATOR");
+        await candidate.save();
+
+        // Create an interview entry for the candidate
+        const interview = {
+          sourceAccount: account,
+          candidate: candidate.attributes.userId,
+          stage: 'VALIDATOR',
+          startEpochSeconds: Math.floor(Date.now() / 1000),
+        };
+        await saveInterview(interview);
+        setInterviews([interview]);
+      } else {
+        showError('No candidate found for interview!');
+      }
+    } catch (error) {
+      console.log(error);
+      showError('Could not find any candidate to validate');
+    }
+
+    setShowGetCandidate(true);
+  }
 
   useEffect(() => {
     getEntranceFee();
@@ -117,6 +180,26 @@ const Main = () => {
       setEmployerStake(Moralis.Units.FromWei(employerStakeData));
     }
   }, [employerStakeData, employerStakeError]);
+
+  useEffect(() => {
+    const runQuery = async () => {
+      try {
+        const candidates = await fetchInterviews();
+        console.log(candidates);
+        if (candidates) {
+          setInterviews(candidates);
+        } else {
+          setInterviews([]);
+        }
+      } catch (error) {
+        console.log(error);
+        setInterviews([]);
+        showError('Could not fetch list of candidates to validate');
+      }
+    };
+
+    runQuery();
+  }, [user, account]);
 
   if (loading) {
     return (
@@ -147,13 +230,29 @@ const Main = () => {
               Add Gas
             </button>
           </div>
-        ) : candidates.length ? (
-          <div className='mt-8'>
-            <h3 className='mb-2 text-xl text-gradient'>Interviews</h3>
-            <CandidateList candidates={user.attributes.candidates} />
+        ) : interviews.length === 0 ? (
+          <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
+            <div className='w-2/3 p-4 md:w-2/5'>
+              <Image
+                src={NoCandidates}
+                alt="no candidates in queue"
+              />
+            </div>
+            <div>
+              Nothing found! Let&apos;s start reviewing some candidates?
+            </div>
+            <ButtonWithProgress
+              id="validator-get-candidate"
+              showConfirmText={showGetCandidate}
+              className="w-1/3 mt-2 btn-basic bg-gradient"
+              confirmText="Get Candidate"
+              onClick={onGetCandidate}
+            />
           </div>
         ) : (
-          <div className='mt-4'>No candidates</div>
+          <div className='mt-4'>
+            <EmployeeInterviewList candidates={interviews} />
+          </div>
         )}
       </div>
       <div className='col-start-3 col-end-4'>

@@ -3,6 +3,7 @@ type Interview = {
     sourceAccount: string;
     candidate: string;
     stage: 'VALIDATOR' | 'EMPLOYER';
+    status: 'OPEN' | 'CLOSED';
     startEpochSeconds: number;
   };
 };

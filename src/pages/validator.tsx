@@ -4,10 +4,11 @@ import Image from 'next/image';
 import { useMoralis, useMoralisQuery, useNewMoralisObject } from 'react-moralis';
 
 import AppHeader from '../components/AppHeader';
-import ValidatorInterviewList from '../containers/ValidatorInterviewList';
-
-import { showError } from '../containers/Toast';
 import ButtonWithProgress from '../components/ButtonWithProgress';
+
+import ValidatorInterviewList from '../containers/ValidatorInterviewList';
+import { showError } from '../containers/Toast';
+
 import NoCandidates from '../../public/img/no-candidates.png';
 import NotAValidator from '../../public/img/not-a-validator.jpeg';
 
@@ -42,7 +43,10 @@ const Main = () => {
 
   const { fetch: fetchInterviews } = useMoralisQuery(
     "Interviews",
-    (query) => query.equalTo("sourceAccount", account),
+    (query) => query
+      .equalTo("status", "OPEN")
+      .equalTo("sourceAccount", account)
+      .equalTo("stage", "VALIDATOR"),
     [account],
     { autoFetch: false }
   );
@@ -58,14 +62,14 @@ const Main = () => {
         console.log(candidate);
 
         // Update the state of the candidate to VALIDATOR
-        candidate.set("status", "VALIDATOR");
+        candidate.set("status", "EMPLOYER");
         await candidate.save();
 
         // Create an interview entry for the candidate
         const interview = {
           sourceAccount: account,
           candidate: candidate.attributes.userId,
-          stage: 'VALIDATOR',
+          stage: 'EMPLOYER',
           startEpochSeconds: Math.floor(Date.now() / 1000),
         };
         await saveInterview(interview);
@@ -114,8 +118,6 @@ const Main = () => {
       </div>
     );
   }
-
-  console.log(interviews);
 
   return (
     <div className='min-h-screen p-16 grid grid-cols-3 gap-8'>

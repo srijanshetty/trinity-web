@@ -1,7 +1,7 @@
 type Candidate = {
   attributes: {
     userId: string;
-    stage: 'NEW' | 'VALIDATOR' | 'EMPLOYER';
+    stage: 'NEW' | 'VALIDATED' | 'EMPLOYER';
     name: string;
     email: string;
     twitter: string;
