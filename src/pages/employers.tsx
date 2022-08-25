@@ -1,16 +1,26 @@
+import { useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 
 import AppHeader from '../components/AppHeader';
-import { useMoralis } from 'react-moralis';
+import { useMoralis, useApiContract } from 'react-moralis';
 
 import NoGas from '../../public/img/no-gas.png';
+import TrinityAbi from '../abi/Trinity.json';
 
-const EmployerStats = () => {
+import { CHAIN_NAME, CONTRACT_ADDRESS } from '../constants';
+
+const EmployerStats = ({ entranceFee, entranceFeeError }) => {
   return (
     <div className='p-4 rounded-lg bg-purple'>
       <h2 className='text-lg text-center uppercase'>Stats</h2>
-      <div className='grid grid-cols-2'>
+      <div className='mt-4 grid grid-cols-2'>
+        <div className='col-start-1 col-end-2'>
+          Fee:
+        </div>
+        <div className='text-right col-start-2 col-end-3'>
+          {entranceFeeError ? 'Error' : entranceFee}
+        </div>
       </div>
     </div>
   );
@@ -28,8 +38,24 @@ const CandidateList = ({ candidates }) => {
 
 const Main = () => {
   const { user } = useMoralis();
+
+   const {
+     runContractFunction: getEntranceFee,
+     data: entranceFee,
+     error: entranceFeeError,
+   } = useApiContract({
+     chain: CHAIN_NAME,
+     address: CONTRACT_ADDRESS,
+     functionName: "getEntranceFee",
+     abi: TrinityAbi.abi,
+   });
+  
   const gas = user.attributes?.gas ?? 0;
   const candidates = user.attributes?.candidates ?? [];
+
+  useEffect(() => {
+    getEntranceFee();
+  }, [getEntranceFee]);
 
   return (
     <div className='min-h-screen p-16 grid grid-cols-3 gap-8'>
@@ -48,14 +74,14 @@ const Main = () => {
             <div>
               No gas in the tank! Add some to search candidates!
             </div>
-            <button className="mt-8 text-xl btn-basic bg-gradient">
+            <button className="mt-8 text-xl btn-basic bg-gradient" onClick={() => getEntranceFee()}>
               Add Gas
             </button>
           </div>
         )}
       </div>
       <div className='col-start-3 col-end-4'>
-        <EmployerStats />
+        <EmployerStats entranceFee={entranceFee} entranceFeeError={entranceFeeError} />
       </div>
     </div>
   );
