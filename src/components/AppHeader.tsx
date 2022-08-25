@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { MdDehaze as Hamburger, MdClose as Close } from 'react-icons/md';
-import { ConnectButton } from '@web3uikit/web3';
+import ConnectButton from '../containers/ConnectButton';
 
 import logo from '../../public/logo.png';
 
