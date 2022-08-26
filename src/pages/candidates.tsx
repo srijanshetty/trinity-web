@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useMoralis, useMoralisQuery, useNewMoralisObject } from 'react-moralis';
+import { useMoralis, useMoralisQuery, useNewMoralisObject, useNFTBalances } from 'react-moralis';
 import { User, Twitter, Github, Mail, Pulse } from '@web3uikit/icons'
 
 import Loading from '../components/Loading';
 import AppHeader from '../components/AppHeader';
 import ButtonWithProgress from '../components/ButtonWithProgress';
+import SkillTable from '../components/SkillTable';
+
 import { showSuccess, showError } from '../containers/Toast';
 import CandidateInterviewList from '../containers/CandidateInterviewList';
 
@@ -104,7 +106,7 @@ const Trophies = ({
         <div className='mt-8'>
           <h3 className='mb-2 text-xl text-gradient'>NFTs</h3>
           {skills.length ? (
-            <CandidateInterviewList interviews={interviews} />
+            <SkillTable skills={skills} />
           ) : (
             <div className='flex flex-col items-center justify-center rounded-lg bg-opacity-50'>
               <div className='w-2/3 p-4 md:w-2/5 '>
@@ -133,6 +135,7 @@ const Main = () => {
   const [showConfirm, setShowConfirm] = useState(true);
   const [candidateData, setCandidateData] = useState(null);
   const [interviews, setInterviews] = useState([]);
+  const [skills, setSkills] = useState([]);
 
   const { user, account } = useMoralis();
 
@@ -151,6 +154,13 @@ const Main = () => {
     [account],
     { autoFetch: false }
   );
+
+  // Fetch all NFTs of the candidate
+  const {
+    getNFTBalances,
+    data: getNFTBalancesData,
+    error: getNFTBalancesError,
+  } = useNFTBalances();
 
   useEffect(() => {
     const runQuery = async () => {
@@ -175,7 +185,14 @@ const Main = () => {
     };
 
     runQuery();
+    getNFTBalances();
   }, [user, account]);
+
+  useEffect(() => {
+    if (getNFTBalancesData) {
+      setSkills(getNFTBalancesData.result);
+    }
+  }, [getNFTBalancesData, getNFTBalancesError]);
 
   const onSubmit = async ({
     name,
@@ -285,7 +302,7 @@ const Main = () => {
           </div>
         ) : (
           <div className='mt-4'>
-            <Trophies candidate={candidateData} interviews={interviews} skills={[]} />
+            <Trophies candidate={candidateData} interviews={interviews} skills={skills} />
           </div>
         )}
       </div>

@@ -1,7 +1,6 @@
 type Skill = {
-  attributes: {
-    id: string;
-  };
+  token_id: string;
+  token_uri: string;
 };
 
 export default Skill;
