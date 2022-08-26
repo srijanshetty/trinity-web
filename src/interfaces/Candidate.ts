@@ -7,6 +7,7 @@ type Candidate = {
     twitter: string;
     github: string;
     linkedIn: string;
+    account: string;
   };
 };
 

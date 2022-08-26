@@ -129,7 +129,7 @@ const Trophies = ({
 };
 
 const Main = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showConfirm, setShowConfirm] = useState(true);
   const [candidateData, setCandidateData] = useState(null);
   const [interviews, setInterviews] = useState([]);
@@ -148,7 +148,7 @@ const Main = () => {
   const { fetch: fetchInterviews } = useMoralisQuery(
     "Interviews",
     (query) => query.equalTo("candidate", user.id),
-    [user, account],
+    [account],
     { autoFetch: false }
   );
 
@@ -157,6 +157,7 @@ const Main = () => {
       try {
         const candidate = await fetchCandidateData();
 
+        console.log(account, candidate);
         if (candidate[0]) {
           setCandidateData(candidate[0].attributes);
         }
@@ -185,9 +186,15 @@ const Main = () => {
   }) => {
     setShowConfirm(false);
     try {
+      if (!account) {
+        showError('Please connect your wallet');
+        return;
+      }
+
       const candidate = {
         userId: user.id,
         status: 'NEW',
+        account,
         name,
         email,
         twitter,
