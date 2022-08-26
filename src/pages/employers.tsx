@@ -14,7 +14,7 @@ import AppHeader from '../components/AppHeader';
 import ButtonWithProgress from '../components/ButtonWithProgress';
 
 import EmployeeInterviewList from '../containers/EmployeeInterviewList';
-import { showError } from '../containers/Toast';
+import { showSuccess, showError } from '../containers/Toast';
 
 import NoGas from '../../public/img/no-gas.png';
 import NoCandidates from '../../public/img/no-candidates.png';
@@ -95,6 +95,8 @@ const Main = () => {
 
    const {
      fetch: runEnlistEmployer,
+     data: runEnlistEmployerData,
+     error: runEnlistEmployerError,
    } = useWeb3ExecuteFunction({
      contractAddress: CONTRACT_ADDRESS,
      functionName: "enlistEmployer",
@@ -163,11 +165,13 @@ const Main = () => {
     setShowGetCandidate(true);
   }
 
+  // Update the entire state when data becomes stale
   useEffect(() => {
     getEntranceFee();
     getEmployerStake();
-  }, [account, getEntranceFee, getEmployerStake]);
+  }, [account, getEntranceFee, getEmployerStake, runEnlistEmployerData]);
 
+  // Update the entrance fee in ETH terms when the contract returns the value
   useEffect(() => {
     if (entranceFeeData) {
       setEntranceFee(Moralis.Units.FromWei(entranceFeeData));
@@ -175,11 +179,22 @@ const Main = () => {
     }
   }, [entranceFeeData, entranceFeeDataError]);
 
+  // Update the stake in ETH terms when contract is updated
   useEffect(() => {
     if (employerStakeData) {
       setEmployerStake(Moralis.Units.FromWei(employerStakeData));
     }
   }, [employerStakeData, employerStakeError]);
+
+  useEffect(() => {
+    if (runEnlistEmployerData) {
+      showSuccess(
+        `Waiting on ${runEnlistEmployerData['hash']} to complete`
+      , {
+        autoClose: false
+      });
+    }
+  }, [runEnlistEmployerData, runEnlistEmployerError]);
 
   useEffect(() => {
     const runQuery = async () => {
