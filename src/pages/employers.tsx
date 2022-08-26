@@ -134,6 +134,11 @@ const Main = () => {
     // that only one candidate per entranceFee
     setShowGetCandidate(false);
 
+    if (Number(employerStake) < interviews.length * Number(entranceFee)) {
+      showError('Stake more money to get a candidate');
+      return;
+    }
+
     try {
       const candidates = await fetchCandidateData();
       const candidate = candidates[0];
@@ -142,18 +147,24 @@ const Main = () => {
         console.log(candidate);
 
         // Update the state of the candidate to VALIDATOR
-        candidate.set("status", "VALIDATOR");
+        candidate.set("status", "EMPLOYER");
         await candidate.save();
 
         // Create an interview entry for the candidate
         const interview = {
           sourceAccount: account,
-          candidate: candidate.attributes.userId,
-          stage: 'VALIDATOR',
+          candidate: candidate.attributes.account,
+          stage: 'EMPLOYER',
           startEpochSeconds: Math.floor(Date.now() / 1000),
         };
         await saveInterview(interview);
-        setInterviews([interview]);
+
+        // Force reload the UI with the new interview
+        setInterviews([{
+          attributes: {
+            ...interview
+          }
+        }]);
       } else {
         showError('No candidate found for interview!');
       }
@@ -176,6 +187,11 @@ const Main = () => {
     if (entranceFeeData) {
       setEntranceFee(Moralis.Units.FromWei(entranceFeeData));
       setLoading(false);
+    }
+
+    if (entranceFeeDataError) {
+      console.log(entranceFeeDataError);
+      showError(entranceFeeDataError.message);
     }
   }, [entranceFeeData, entranceFeeDataError]);
 

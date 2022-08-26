@@ -16,7 +16,7 @@ const SkillItem = ({ skill }: { skill: Skill }) => {
 const SkillTable = ({ skills } : { skills: Skill[] }) => {
   return (
     <div className='mt-4 grid grid-cols-2 gap-4'>
-      {skills.map((skill) => <SkillItem skill={skill} />)}
+      {skills.map((skill) => <SkillItem key={skill.token_id} skill={skill} />)}
     </div>
   );
 }

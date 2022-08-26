@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useWeb3ExecuteFunction } from 'react-moralis';
+import { useEffect, useState } from 'react';
+import { useWeb3ExecuteFunction, useMoralisQuery } from 'react-moralis';
 import { Table } from '@web3uikit/core';
 import { DateTime } from 'luxon';
 
-import { showSuccess } from '../containers/Toast';
+import { showSuccess, showError } from '../containers/Toast';
 
 import Interview from '../interfaces/Interview';
 
@@ -12,28 +12,85 @@ import TrinityAbi from '../abi/Trinity.json';
 import { CONTRACT_ADDRESS } from '../constants';
 
 const ValidatorInterviewList = ({
-  candidates
+  validator,
+  candidates,
 } : {
-  candidates: Interview[]
+  validator: string;
+  candidates: Interview[];
 }) => {
+  const [currentCandidate, setCurrentCandidate] = useState(null);
+
   const {
     fetch,
     data: issueSkillNFTData,
     error: issueSkillNFTError
-  } = useWeb3ExecuteFunction({
+  } = useWeb3ExecuteFunction();
+
+  const { fetch: fetchInterviews } = useMoralisQuery(
+    "Interviews",
+    (query) => query
+      .equalTo("status", "OPEN")
+      .equalTo("stage", "VALIDATOR")
+      .equalTo("candidate", currentCandidate),
+    [currentCandidate],
+    { autoFetch: false }
+  );
+
+  const { fetch: fetchCandidateData } = useMoralisQuery(
+    "Candidates",
+    (query) => query
+      .equalTo("status", "VALIDATOR")
+      .equalTo("account", currentCandidate),
+    [currentCandidate],
+    { autoFetch: false }
+  );
+
+  const onSkillNFTIssued = async () => {
+    try {
+      const candidates = await fetchCandidateData();
+      const candidate = candidates[0];
+
+      if (candidate) {
+        console.log(candidate);
+
+        // Update the state of the candidate to VALIDATOR
+        candidate.set("status", "VALIDATED");
+        await candidate.save();
+
+        // Create an interview entry for the candidate
+        const interviews = await fetchInterviews();
+        const interview = interviews[0];
+
+        if (interview) {
+          interview.set("status", "CLOSED");
+          await interview.save();
+        } else {
+          showError('No interview found for candidate!');
+        }
+      } else {
+        showError('No candidate found for interview!');
+      }
+    } catch (error) {
+      console.log(error);
+      showError('Could not find any candidate to validate');
+    }
+  }
+
+  const onClick = async (candidate: string) => {
+    const options = {
       contractAddress: CONTRACT_ADDRESS,
       functionName: "issueSkillNFT",
       abi: TrinityAbi.abi,
       params: {
-        _candidate: '0x808FF4E7Ec78636bAb0712aC0c53D60978194596',
+        _candidate: candidate,
         _skill: 'https://lh3.googleusercontent.com/ifMOtIqni6DEfu0sfjvL4Es4TVlqhQVQfu3hTCCIft2-UeYwtrYmAK5MpZq1G0UZClkBwGJ4xDdEIkyE5sT3uBtEWwx9g6tM4Fn5Uw=s0',
       },
-  });
-
-  const onClick = async (candidate: string) => {
-    await fetch();
+    }
+    setCurrentCandidate(candidate);
+    await fetch({ params: options });
   };
 
+  // Show the transaction hash once request starts
   useEffect(() => {
     if (issueSkillNFTData) {
       showSuccess(
@@ -41,6 +98,13 @@ const ValidatorInterviewList = ({
       , {
         autoClose: false
       });
+
+      onSkillNFTIssued();
+    }
+
+    if (issueSkillNFTError) {
+      console.log(issueSkillNFTError);
+      showError(issueSkillNFTError.message);
     }
   }, [issueSkillNFTData, issueSkillNFTError]);
 

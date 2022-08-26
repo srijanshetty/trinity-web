@@ -195,7 +195,7 @@ const Main = () => {
           </div>
         ) : (
           <div className='mt-4'>
-            <ValidatorInterviewList candidates={interviews} />
+            <ValidatorInterviewList validator={account} candidates={interviews} />
           </div>
         )}
       </div>
