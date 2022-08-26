@@ -21,7 +21,7 @@ import NoCandidates from '../../public/img/no-candidates.png';
 
 import TrinityAbi from '../abi/Trinity.json';
 
-import { CHAIN_NAME, CONTRACT_ADDRESS } from '../constants';
+import { CHAIN_ID, CONTRACT_ADDRESS } from '../constants';
 
 const EmployerStats = ({
   entranceFee,
@@ -73,7 +73,7 @@ const Main = () => {
      data: entranceFeeData,
      error: entranceFeeDataError,
    } = useApiContract({
-     chain: CHAIN_NAME,
+     chain: CHAIN_ID,
      address: CONTRACT_ADDRESS,
      functionName: "getEntranceFee",
      abi: TrinityAbi.abi,
@@ -84,7 +84,7 @@ const Main = () => {
      data: employerStakeData,
      error: employerStakeError,
    } = useApiContract({
-     chain: CHAIN_NAME,
+     chain: CHAIN_ID,
      address: CONTRACT_ADDRESS,
      functionName: "getEmployerStake",
      abi: TrinityAbi.abi,
@@ -103,7 +103,7 @@ const Main = () => {
    });
 
    const enlistEmployer = async () => {
-     const result = await runEnlistEmployer();
+     await runEnlistEmployer();
      setEmployerStake(entranceFee);
    };
   

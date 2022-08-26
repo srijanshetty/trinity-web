@@ -1,9 +1,7 @@
-const CHAIN_NAME = 'kovan';
 const CHAIN_ID = '0x2a';
 const CONTRACT_ADDRESS = '0xE36528b112C037E82ae57adD2CaC3490E7e2072F';
 
 export {
-  CHAIN_NAME,
   CHAIN_ID,
   CONTRACT_ADDRESS
 };
