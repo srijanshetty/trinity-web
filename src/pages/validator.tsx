@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useMoralis, useMoralisQuery, useNewMoralisObject } from 'react-moralis';
+import { useMoralis, useMoralisQuery, useNewMoralisObject, useApiContract } from 'react-moralis';
 
 import AppHeader from '../components/AppHeader';
 import ButtonWithProgress from '../components/ButtonWithProgress';
+import Loading from '../components/Loading';
 
 import ValidatorInterviewList from '../containers/ValidatorInterviewList';
 import { showError } from '../containers/Toast';
 
 import NoCandidates from '../../public/img/no-candidates.png';
 import NotAValidator from '../../public/img/not-a-validator.jpeg';
+
+import TrinityAbi from '../abi/Trinity.json';
+
+import { CHAIN_ID, CONTRACT_ADDRESS } from '../constants';
 
 const ValidatorStats = ({ candidates }) => {
   return (
@@ -29,10 +34,26 @@ const ValidatorStats = ({ candidates }) => {
 }
 
 const Main = () => {
+  const [loading, setLoading] = useState(true);
+  const [isValidator, setIsValidator] = useState(false);
   const [showGetCandidate, setShowGetCandidate] = useState(true);
   const [interviews, setInterviews] = useState([]);
   const { user, account } = useMoralis();
   const { save: saveInterview } = useNewMoralisObject("Interviews");
+
+   const {
+     runContractFunction: runIsValidator,
+     data: isValidatorData,
+     error: isValidatorError,
+   } = useApiContract({
+     chain: CHAIN_ID,
+     address: CONTRACT_ADDRESS,
+     functionName: "isValidator",
+     abi: TrinityAbi.abi,
+     params: {
+       _validator: account,
+     },
+   });
 
   const { fetch: fetchCandidateData } = useMoralisQuery(
     "Candidates",
@@ -62,18 +83,24 @@ const Main = () => {
         console.log(candidate);
 
         // Update the state of the candidate to VALIDATOR
-        candidate.set("status", "EMPLOYER");
+        candidate.set("status", "VALIDATOR");
         await candidate.save();
 
         // Create an interview entry for the candidate
         const interview = {
           sourceAccount: account,
-          candidate: candidate.attributes.userId,
-          stage: 'EMPLOYER',
+          candidate: candidate.attributes.account,
+          stage: 'VALIDATOR',
           startEpochSeconds: Math.floor(Date.now() / 1000),
         };
         await saveInterview(interview);
-        setInterviews([interview]);
+
+        // Force reload the UI with the new interview
+        setInterviews([{
+          attributes: {
+            ...interview
+          }
+        }]);
       } else {
         showError('No candidate found for interview!');
       }
@@ -88,20 +115,44 @@ const Main = () => {
   useEffect(() => {
     const runQuery = async () => {
       try {
+        await runIsValidator();
+
         const candidates = await fetchInterviews();
         console.log(candidates);
-        setInterviews(candidates);
+
+        if (candidates) {
+          setInterviews(candidates);
+        }
       } catch (error) {
         console.log(error);
         setInterviews([]);
         showError('Could not fetch list of candidates to validate');
       }
+
+      setLoading(false);
     };
 
     runQuery();
   }, [user, account]);
 
-  if (!user.attributes.isValidator) {
+  // Update the value of isValidator
+  useEffect(() => {
+    if (isValidatorData) {
+      setIsValidator(!!isValidatorData);
+    }
+  }, [isValidatorData, isValidatorError]);
+
+  if (loading) {
+    return (
+      <div className='min-h-screen -mt-16'>
+        <div className='flex flex-row items-center justify-center min-h-screen'>
+          <Loading />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidator) {
     return (
       <div className='min-h-screen'>
         <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
