@@ -4,9 +4,10 @@ import { ToastContainer } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { MoralisProvider } from "react-moralis";
 
-import '../styles/index.css';
-
+// Important to place this before
 import 'react-toastify/dist/ReactToastify.min.css';
+
+import '../styles/index.css';
 
 import { GTMPageView } from '../services/ga';
 

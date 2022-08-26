@@ -1,4 +1,6 @@
-@import 'tailwindcss/base';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   body {
@@ -6,8 +8,6 @@
     color: white;
   }
 }
-
-@import 'tailwindcss/components';
 
 @layer components {
   .btn-basic {
@@ -17,28 +17,7 @@
   .btn-basic.disabled {
     @apply shadow-transparent;
   }
-
-  /* Needs to be outside @layer to ensure purging doesn't happen */
-  .Toastify__toast-container {
-    @apply px-6 md:w-auto !important;
-  }
-
-  .Toastify__toast {
-    @apply min-h-0 rounded-lg px-4 font-sans font-light mb-4 !important;
-  }
-
-  .Toastify__toast-body {
-    @apply flex items-center md:mr-6 !important;
-  }
-
-  .Toastify__close-button {
-    @apply self-auto !important;
-  }
 }
-
-/* Your own custom component styles */
-
-@import 'tailwindcss/utilities';
 
 .bg-gradient {
   background: linear-gradient(
@@ -79,4 +58,21 @@
     rgb(231, 139, 58) 0%,
     rgb(231, 172, 58) 100%
   );
+}
+
+/* Needs to be outside @layer to ensure purging doesn't happen */
+.Toastify__toast-container {
+  @apply px-6 md:w-auto;
+}
+
+.Toastify__toast {
+  @apply min-h-0 rounded-lg px-4 font-sans font-light mb-4;
+}
+
+.Toastify__toast-body {
+  @apply flex items-center md:mr-6;
+}
+
+.Toastify__close-button {
+  @apply self-auto;
 }
