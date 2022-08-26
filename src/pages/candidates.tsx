@@ -150,7 +150,9 @@ const Main = () => {
 
   const { fetch: fetchInterviews } = useMoralisQuery(
     "Interviews",
-    (query) => query.equalTo("candidate", user.id),
+    (query) => query
+      .equalTo("candidate", account)
+      .equalTo("status", "OPEN"),
     [account],
     { autoFetch: false }
   );
