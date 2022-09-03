@@ -40,13 +40,13 @@ const EmployerStats = ({
           Fee:
         </div>
         <div className='text-right col-start-2 col-end-3'>
-          {!entranceFee ? 'Error' : `${entranceFee} ETH`}
+          {!entranceFee ? 'Error' : `${entranceFee} MATIC`}
         </div>
         <div className='col-start-1 col-end-2'>
           Stake:
         </div>
         <div className='text-right col-start-2 col-end-3'>
-          {!employerStake ? 'No Stake' : `${employerStake} ETH`}
+          {!employerStake ? 'No Stake' : `${employerStake} MATIC`}
         </div>
         <div className='flex flex-row items-center justify-center col-span-full'>
           <button className='mt-8 text-lg btn-basic bg-gradient' onClick={enlistEmployer}>
