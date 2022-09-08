@@ -17,7 +17,7 @@ import TrinityAbi from '../abi/Trinity.json';
 
 import { CHAIN_ID, CONTRACT_ADDRESS } from '../constants';
 
-const ValidatorStats = ({ candidates }) => {
+const ValidatorStats = ({ candidates, validated }) => {
   return (
     <div className='p-4 rounded-lg bg-purple'>
       <h2 className='text-lg text-center uppercase'>Stats</h2>
@@ -29,6 +29,14 @@ const ValidatorStats = ({ candidates }) => {
           {candidates.length}
         </div>
       </div>
+      <div className='mt-2 grid grid-cols-2'>
+        <div className='col-start-1 col-end-2'>
+          Validated
+        </div>
+        <div className='text-right col-start-2 col-end-3'>
+          {validated.length}
+        </div>
+      </div>
     </div>
   );
 }
@@ -38,6 +46,7 @@ const Main = () => {
   const [isValidator, setIsValidator] = useState(false);
   const [showGetCandidate, setShowGetCandidate] = useState(true);
   const [interviews, setInterviews] = useState([]);
+  const [validated, setValidated] = useState([]);
   const { user, account } = useMoralis();
   const { save: saveInterview } = useNewMoralisObject("Interviews");
 
@@ -65,7 +74,6 @@ const Main = () => {
   const { fetch: fetchInterviews } = useMoralisQuery(
     "Interviews",
     (query) => query
-      .equalTo("status", "OPEN")
       .equalTo("sourceAccount", account)
       .equalTo("stage", "VALIDATOR"),
     [account],
@@ -117,11 +125,16 @@ const Main = () => {
       try {
         await runIsValidator();
 
-        const candidates = await fetchInterviews();
-        console.log(candidates);
+        const results = await fetchInterviews();
+        const candidates = results.filter((result) => result.attributes.status === 'NEW');
+        const validated = results.filter((result) => result.attributes.status !== 'NEW');
 
         if (candidates) {
           setInterviews(candidates);
+        }
+
+        if (validated) {
+          setValidated(validated);
         }
       } catch (error) {
         console.log(error);
@@ -201,7 +214,7 @@ const Main = () => {
       </div>
 
       <div className='col-start-3 col-end-4'>
-        <ValidatorStats candidates={interviews} />
+        <ValidatorStats candidates={interviews} validated={validated} />
       </div>
     </div>
   );
