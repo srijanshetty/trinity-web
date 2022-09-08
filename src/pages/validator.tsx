@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useMoralis, useMoralisQuery, useNewMoralisObject, useApiContract } from 'react-moralis';
+import { Table } from '@web3uikit/core';
+import { DateTime } from 'luxon';
 
 import AppHeader from '../components/AppHeader';
 import ButtonWithProgress from '../components/ButtonWithProgress';
@@ -38,6 +40,40 @@ const ValidatorStats = ({ candidates, validated }) => {
         </div>
       </div>
     </div>
+  );
+}
+
+const ValidatedList = ({ validated }) => {
+  return (
+    <Table
+      columnsConfig="1fr 1fr 1fr"
+      data={validated.map(
+        (item) => [
+          <div
+            key={`${item.attributes.candidate}_time`}
+            className='flex flex-row items-center justify-start w-full h-full'
+          >
+            {DateTime.fromSeconds(item.attributes.startEpochSeconds).toFormat('dd-MM-yyyy')}
+          </div>,
+          <div
+            key={`${item.attributes.candidate}_candidate`}
+            className='flex flex-row items-center justify-center w-full h-full'
+          >
+            {item.attributes.candidate.slice(16)}
+          </div>,
+        ]
+      )}
+      header={[
+        <span key="epoch">Allocated At</span>,
+        <span key="type">Candidate</span>,
+      ]}
+      isColumnSortable={[
+        true,
+        true
+      ]}
+      maxPages={3}
+      pageSize={5}
+    />
   );
 }
 
@@ -126,8 +162,8 @@ const Main = () => {
         await runIsValidator();
 
         const results = await fetchInterviews();
-        const candidates = results.filter((result) => result.attributes.status === 'NEW');
-        const validated = results.filter((result) => result.attributes.status !== 'NEW');
+        const candidates = results.filter((result) => result.attributes.status === 'OPEN');
+        const validated = results.filter((result) => result.attributes.status === 'CLOSED');
 
         if (candidates) {
           setInterviews(candidates);
@@ -188,27 +224,38 @@ const Main = () => {
       <div className='col-start-1 col-end-3'>
         <h1 className='text-2xl'>Hello <span className='text-gradient'>Validator!</span></h1>
         {interviews.length === 0 ? (
-          <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
-            <div className='w-2/3 p-4 md:w-2/5'>
-              <Image
-                src={NoCandidates}
-                alt="no candidates in queue"
+          <div className="mt-4">
+            <h3 className='mb-2 text-xl text-left text-gradient'>To Validate</h3>
+            <div className='flex flex-col items-center justify-center p-4 mt-8 rounded-lg bg-opacity-50'>
+              <div className='w-2/3 p-4 md:w-2/5'>
+                <Image
+                  src={NoCandidates}
+                  alt="no candidates in queue"
+                />
+              </div>
+              <div>
+                Nothing found! Let&apos;s start reviewing some candidates?
+              </div>
+              <ButtonWithProgress
+                id="validator-get-candidate"
+                showConfirmText={showGetCandidate}
+                className="w-1/3 mt-2 btn-basic bg-gradient"
+                confirmText="Get Candidate"
+                onClick={onGetCandidate}
               />
             </div>
-            <div>
-              Nothing found! Let&apos;s start reviewing some candidates?
-            </div>
-            <ButtonWithProgress
-              id="validator-get-candidate"
-              showConfirmText={showGetCandidate}
-              className="w-1/3 mt-2 btn-basic bg-gradient"
-              confirmText="Get Candidate"
-              onClick={onGetCandidate}
-            />
           </div>
         ) : (
           <div className='mt-4'>
             <ValidatorInterviewList validator={account} candidates={interviews} />
+          </div>
+        )}
+        {validated.length > 0 && (
+          <div className='mt-8'>
+            <h3 className='mb-2 text-xl text-gradient'>Validated</h3>
+            <div className='col-start-3 col-end-4'>
+              <ValidatedList validated={validated} />
+            </div>
           </div>
         )}
       </div>
